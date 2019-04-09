@@ -27,7 +27,8 @@ simulate_load(PyObject *self, PyObject *args) {
             r.ru_stime.tv_sec * MILLION + r.ru_stime.tv_usec;
         if (total_cpu_time_us / 1000 >= cpu_time_ms)
             break;
-        for (long i = 0; i < MILLION; i++) {
+        long i = 0; 
+        for (i = 0; i < MILLION; i++) {
             j++;
         }
     }
