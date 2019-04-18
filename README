@@ -26,35 +26,37 @@ Pipbench
     2. Generate packages:
     python3 generate_packages.py <packages_graph_spec_file> <random_file>
     
-    Creates a package tar.gz for each package in the graph, under ./web dir and the html indices to match,
-    using the same dir structure that PyPI uses
+    Creates a package `tar.gz` for each package in the graph, under `./web dir` and the html indices to match,
+    using the same dir structure that PyPI uses.
 
     3. Start local PyPI server:
-        1. Change the path to the web dir in the nginx.conf, must be absolute path, default is /tmp/web
-        2. Run nginx:
+        1. Set the path to the `web` dir in the nginx.conf, must be absolute path, default set is `/tmp/web`
+        1. Copy `./web` to the path specified in the conf file
+        3. Run nginx:
         sudo nginx -c $(pwd)/nginx.conf
 
 2. Generate handlers:
-    1. Create a number of imports per handler distribution file
+    1. Create a number of imports per handler distribution file. The file is split by whitespace, so you can
+       specify the amount imports in separate lines or separated by spaces.
     
     2. Generate handlers:
     python3 generate_handlers.py <packages_graph_spec_file> <num_imports_per_handler_file>
     Flags:
-    flag: default: desc:
-    -d 1 number of handlers we want written out per handler
-    -n 100 number of handlers to create (before duplicating)
-    -z 1.4 arg to zipfian distribution for handler->package import popularity
-    -s 1 numpy.random seed, to ensure deterministic behavior
+    flag: default:  desc:
+    `-n`    100     number of handlers to create (before duplicating)
+    `-d`    1       number of duplicate handlers we want written out per handler
+    `-z`    1.4     arg to zipfian distribution for handler->package import popularity
+    `-s`    1       numpy.random seed, to ensure deterministic behavior
     
-    Creates a directory of handlers (uncompressed) and places them in the ./handlers dir. A packages_and_size.txt folder is
+    Creates a directory of handlers (uncompressed) and places them in the `./handlers` dir. A packages_and_size.txt folder is
     created with the list of referenced packages (and their uncompressed package sizes), and packages_handler_refcounts.txt is created, 
     relfecting the actual distribution of handler->package imports
 
 To install a package from the local PyPI mirror
-pip2 install --extra-index-url http://localhost:9199/simple/ <package name>
+`pip2 install --extra-index-url http://localhost:9199/simple/ <package name>`
 
 To install from a generated requirements.txt:
-pip2 install -r test1/requirements.txt  --index-url http://localhost:9199/simple/
+`pip2 install -r test1/requirements.txt  --index-url http://localhost:9199/simple/`
 
 NOTES:
 - generate_packages.py and generate_handlers.py use python3

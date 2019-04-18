@@ -1,8 +1,34 @@
 ### Running a benchmark against a started cluster
 
-To run a benchmark, the script run_workload.py is used. This script takes
-a json config file as its onyl argument which specifies the workload. Example
-configs are provided in the workload_examples directory.
+To run a benchmark, the script `run_workload.py` is used. This script takes
+a `json` config file as its only argument which specifies the workload. Example
+configs are provided in the `./evaluation/workload_examples` directory.
+
+#### Writing configuration files
+
+Config files specify the following obligatory parameters, as well as a few
+optional ones, in ´json`:
+
+* `host`            IP of host machine for the lambda functions. (`string`)
+* `runners`         Number of client processes sending requests in parallel to the 
+                    host machine. (`number`)
+* `wait`            The amount of time each runner should wait before sending the
+                    next requests. Can be of value zero.  (`number`)
+* `type`            Either `sync` or `async`, specifies if the request behavior
+                    for the runners is either blocking or fire-and-forget. (`string`)
+* `minutes`         The time in minutes the workload should run. (`number`)
+* `handlers`        A text file listing all the handlers the workload should send
+                    requests to. (`string`)
+* `log`             Path to the text file the workload should create and dump the
+                    results to. (`string`)
+* `bench`           The FAAS deployment of the host machine. (Currently supported are
+                    `openlambda` and `openwhisk`). (`string`)
+* `handler_choice`  [`Optional`] Default handler choice is `random`, if `rotation` is
+                    specified instead, both `rotation_period` and
+                    `rotation_slice` (both `number`) need to be set as well, these set 
+                    the time in seconds to wait before rotating and the slice size 
+                    of handlers, respectively
+                    rot
 
 At a high level, a workload consists of many client processess and a set of
 handlers. In sync mode, each process makes a requests to a handler, waits for
