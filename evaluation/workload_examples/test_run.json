@@ -1,0 +1,10 @@
+{
+    "log": "bench.log",
+    "type": "sync",
+    "wait": 500,
+    "runners": 2,
+    "minutes": 1,
+    "handlers": "handler_specs/handlers.txt",
+    "host": "172.17.0.1",
+    "bench": "openwhisk"
+}

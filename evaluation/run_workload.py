@@ -14,6 +14,10 @@ session = requests.Session()
 
 HEADERS = {'Content-Type': 'application/json'}
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+ENDPOINTS = {
+            'openwhisk': 'https://%s/api/v1/web/guest/default/%s.json',
+            'openlambda': 'http://%s:8080/runLambda/%s'
+        }
 
 def async_response(r, **kwargs):
     global outstanding
@@ -32,9 +36,9 @@ def async_response(r, **kwargs):
 def async_request(handler_name):
     global outstanding
 
-    r = grequests.post('http://%s:8080/runLambda/%s' % (config['host'], handler_name), headers=HEADERS, data=json.dumps({
+    r = grequests.post(ENDPOINTS[config['bench']] % (config['host'], handler_name), headers=HEADERS, data=json.dumps({
         "name": "Alice"
-    }), hooks=dict(response=async_response))
+    }), hooks=dict(response=async_response), verify=False)
 
     job = grequests.send(r, grequests.Pool(1))
 
@@ -44,9 +48,9 @@ def async_request(handler_name):
     return
 
 def sync_request(handler_name):
-    r = session.post('http://%s:8080/runLambda/%s' % (config['host'], handler_name), headers=HEADERS, data=json.dumps({
+    r = session.post(ENDPOINTS[config['bench']] % (config['host'], handler_name), headers=HEADERS, data=json.dumps({
         "name": "Alice"
-    }))
+    }), verify=False)
 
     ms = r.elapsed.seconds*1000.0 + r.elapsed.microseconds/1000.0
     result = {"time": datetime.datetime.now(), "handler_name": handler_name, "status_code": r.status_code, "latency": ms}
@@ -229,6 +233,7 @@ def main():
 
 if __name__ == '__main__':
     global config 
+
 
     if len(sys.argv) != 2:
         print('Usage: %s <config.json>' % sys.argv[0])

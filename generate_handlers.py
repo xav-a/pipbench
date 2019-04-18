@@ -30,7 +30,7 @@ def pick_imports(pkgs, zipf, dep_dist):
         num_deps = numpy.random.choice(dep_dist)
         yield numpy.random.choice(pkgs, num_deps, False, pkg_dist)
 
-def write_handlers(handlers_dir, graph, zipf, dep_dist, duplicates, num_handlers):
+def write_handlers(handlers_dir, graph, dep_dist, zipf, duplicates, num_handlers, benchmark):
     all_deps = set()
     refs = {pkg_name: 0  for pkg_name in graph}
 
@@ -46,19 +46,19 @@ def write_handlers(handlers_dir, graph, zipf, dep_dist, duplicates, num_handlers
         deps = set.union(imps, *[graph[imp] for imp in imps])
         for j in range(duplicates):
             handler_name = 'hdl%d_%d' % (i, j)
-            handler = Handler(handler_name, imps, deps, mem)
-            write_handler(handlers_dir, handler)
+            handler = Handler(handler_name, imps, deps, mem, benchmark)
+            write_handler(handlers_dir, handler, handler.get_lambda_name())
         all_deps |= deps
 
     return all_deps, refs
 
 
-def write_handler(handlers_dir, handler):
+def write_handler(handlers_dir, handler, lambda_name):
     handler_dir = '%s/%s' % (handlers_dir, handler.name)
     os.makedirs(handler_dir)
 
     lambda_func = handler.get_lambda_func()
-    with open('%s/lambda_func.py' % handler_dir, 'w') as f:
+    with open('%s/%s.py' % (handler_dir, lambda_name), 'w') as f:
         f.write(lambda_func)
 
     packages_txt = handler.get_packages_txt()
@@ -76,6 +76,7 @@ def main():
     parser.add_argument('-n', '--num-handlers', type=int, default=100, help='number of handlers to create')
     parser.add_argument('-z', '--zipf_arg', type=float, default=1.4, help='argument to the zipfian distribution')
     parser.add_argument('-s', '--seed', type=int, default=1, help='random number generator seed')
+    parser.add_argument('-b', '--benchmark', type=str, default="openlambda", help='benchmarkto generate lambdas for')
     args = parser.parse_args()
 
     numpy.random.seed(args.seed)
@@ -89,7 +90,7 @@ def main():
 
     handlers_dir = '%s/handlers' % CWD
 
-    os.system('gcc -fPIC -shared -I/usr/include/python2.7 -lpython2.7  load_simulator.c -o load_simulator.so')
+    os.system('gcc -fPIC -shared -I/usr/include/python2.7 -lpython2.7 load_simulator.c -o load_simulator.so')
 
     if not os.path.exists(handlers_dir):
         os.makedirs(handlers_dir)
@@ -100,7 +101,8 @@ def main():
     print('Populating indirect dependencies...')
     populate_graph(graph)
     print('Writing out handlers...')
-    all_deps, refs = write_handlers(handlers_dir, graph, args.zipf_arg, num_imports, args.duplicates, args.num_handlers)
+    all_deps, refs = write_handlers(handlers_dir, graph, num_imports, args.zipf_arg, args.duplicates, 
+                                                            args.num_handlers, args.benchmark)
     print('Writing out packages used...')
     spec = {entry['name']: entry for entry in spec}
     with open('packages_and_size.txt', 'w') as f:
