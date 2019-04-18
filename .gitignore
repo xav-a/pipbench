@@ -1,0 +1,10 @@
+*.log
+*.dat
+*.so
+*.txt
+
+__pycache__/
+*.pyc
+
+web/
+handlers/
