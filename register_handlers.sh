@@ -40,6 +40,8 @@ for handler in $HANDLER_NAMES; do
     # Remove trailing slash
     handler=$(echo ${handler%/})
     full_name="$EXE_DIR/""$handler" 
+    
+    echo $handler | tee -a $PIPBENCH/evaluation/handler_specs/handlers.txt > /dev/null
 
     zip "$full_name"".zip" -j $HANDLER_DIR/$handler/* > /dev/null
     
