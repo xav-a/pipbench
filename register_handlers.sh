@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ME=`basename "$0"`
 
 if [ $# -eq 0 ]; then
@@ -21,7 +23,7 @@ mkdir $EXE_DIR
 
 echo Writing to $EXE_DIR
 # List all generated packages
-cut -d: -f1 < packages_and_size.txt > $EXE_DIR/all-requirements.txt
+cut -d':' -f1 < packages_and_size.txt > $EXE_DIR/all-requirements.txt
 
 echo Installing from requirements file
 
@@ -31,7 +33,12 @@ docker run --rm -v "$EXE_DIR:/tmp" openwhisk/python2action \
     pip2 install -q --extra-index-url http://$HOST:$PORT/simple/ --trusted-host $HOST \
     -r all-requirements.txt"
 
-echo "Done! Created virtualenv with pip2\n"
+echo -e "Done! Created virtualenv with pip2\n"
+
+REGISTRY="./evaluation/handler_specs/handlers.txt"
+echo "Creating or Truncating $REGISTRY"
+truncate -s 0 $REGISTRY
+
 
 HANDLER_NAMES=$(cd $HANDLER_DIR && ls -d */)
 
@@ -40,6 +47,8 @@ for handler in $HANDLER_NAMES; do
     # Remove trailing slash
     handler=$(echo ${handler%/})
     full_name="$EXE_DIR/""$handler" 
+    
+    echo $handler | tee -a $REGISTRY > /dev/null
 
     zip "$full_name"".zip" -j $HANDLER_DIR/$handler/* > /dev/null
     
@@ -54,7 +63,7 @@ done
 
 echo Removing $EXE_DIR
 rm -r $EXE_DIR
-echo "Done!!!\n"
+echo -e "Done!!!\n"
 
 echo "Retrieve action URL with 'wsk action get <FULL_ACTION_NAME> --url'"
-echo "Example output would be 'https://<APIHOST>/api/v1/web/guest/default/hello'\n"
+echo -e "Example output would be 'https://<APIHOST>/api/v1/web/guest/default/hello'\n"
